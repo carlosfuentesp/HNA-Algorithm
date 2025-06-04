@@ -149,8 +149,8 @@ void Navigation::createHierarchicalGraph(int p_levels,int p_level,int p_mergedPo
 					parentGraph.AddEdge(ref - refBase,neighbourRef - refBase, mid, idPos,ref - refBase);
 					parentGraph.AddEdge(neighbourRef- refBase,ref - refBase, mid, idPos,neighbourRef- refBase);
 
-					positions.insert(std::make_pair<std::pair<dtPolyRef,dtPolyRef>,float*>(p1,mid));
-					positions.insert(std::make_pair<std::pair<dtPolyRef,dtPolyRef>,float*>(p2,mid));
+                                        positions.insert(std::make_pair(p1, mid));
+                                        positions.insert(std::make_pair(p2, mid));
 
 					idPos++;
 				}
@@ -684,7 +684,7 @@ void Navigation::mergeNodes()
 		if(node->numEdges <= 0)
 			continue;
 
-		clusterNode.insert(std::make_pair<dtPolyRef, dtPolyRef>(idC, j));
+                clusterNode.insert(std::make_pair(idC, j));
 	}
 
 	//add parent for each child
@@ -695,7 +695,7 @@ void Navigation::mergeNodes()
 		auto ret = clusterNode.equal_range(it->first);
 		for (auto it1=ret.first; it1!=ret.second; ++it1)
 		{
-			nodeCluster.insert(std::make_pair<dtPolyRef, dtPolyRef>(it1->second, nodeId));
+                        nodeCluster.insert(std::make_pair(it1->second, nodeId));
 			parentGraph.AddParent(it1->second, nodeId);
 		}
 		nodeId++;
@@ -707,7 +707,7 @@ void Navigation::mergeNodes()
 
 	for(auto it = nodeCluster.begin(); it != nodeCluster.end(); ++it ) 
 	{
-		clusterNode.insert(std::make_pair<dtPolyRef, dtPolyRef>(it->second, it->first));	
+                clusterNode.insert(std::make_pair(it->second, it->first));
 	}
 
 	dtFree(xadj);
