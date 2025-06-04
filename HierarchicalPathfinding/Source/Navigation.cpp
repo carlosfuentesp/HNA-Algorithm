@@ -1207,16 +1207,16 @@ void Navigation::setGraph()
 
 Graph::Node *Navigation::getNode(dtPolyRef ref, int l)
 {
-	if(l == level)
-		return &graphs[l].nodes[ref];
+        if (l == level)
+                return &graphs[l].nodes[ref];
 
-	Graph::Node *node = &graphs[l].nodes[ref];
-	
-	if(node->edges <= 0)
-		return NULL;
+        Graph::Node* node = &graphs[l].nodes[ref];
 
-	l++;
-	getNode(node->idParent,l);
+        if (node->numEdges <= 0)
+                return NULL;
+
+        l++;
+        return getNode(node->idParent, l);
 }
 
 void Navigation::checkPartition(int* part, const int numNodes, const int numParts)
