@@ -2,13 +2,16 @@
 
 void Navigation::init()
 {
-	//liberate memory
-	for(int i = 0; i < numGraphs; i++)
-	{
-		graphs[i].nodes->DestroyIntraEdge();
-		graphs[i].nodes->DestroyEdge();
-		graphs[i].Destroy();			
-	}
+        //liberate memory
+        for(int i = 0; i < numGraphs; i++)
+        {
+                for (int j = 0; j < graphs[i].numNodes; ++j)
+                {
+                        graphs[i].nodes[j].DestroyIntraEdge();
+                        graphs[i].nodes[j].DestroyEdge();
+                }
+                graphs[i].Destroy();
+        }
 	
 	numGraphs = 0;
 	//reserve memory por graphs
