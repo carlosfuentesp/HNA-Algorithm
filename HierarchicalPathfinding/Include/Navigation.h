@@ -9,9 +9,11 @@
 #include "RecastAssert.h"
 #include <fstream>
 
+#ifdef NAV_USE_METIS
 extern "C" {
- #include "metis.h"
+#include "metis.h"
 }
+#endif
 
 typedef int idxtype;
 
