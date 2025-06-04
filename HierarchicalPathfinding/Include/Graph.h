@@ -5,6 +5,7 @@
 #include "DetourAlloc.h"
 #include <vector>
 #include <map>
+#include <cstring>
 
 
 const int maxInternalPath = 256;
