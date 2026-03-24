@@ -2,53 +2,39 @@
 
 void Navigation::init()
 {
-	//liberate memory
-	for(int i = 0; i < numGraphs; i++)
-	{
-		graphs[i].nodes->DestroyIntraEdge();
-		graphs[i].nodes->DestroyEdge();
-		graphs[i].Destroy();			
-	}
+        //liberate memory
+        for(int i = 0; i < numGraphs; i++)
+        {
+                for (int j = 0; j < graphs[i].numNodes; ++j)
+                {
+                        graphs[i].nodes[j].DestroyIntraEdge();
+                        graphs[i].nodes[j].DestroyEdge();
+                }
+                graphs[i].Destroy();
+        }
 	
 	numGraphs = 0;
-	//reserve memory por graphs
+	//reserve memory for graphs
+	dtFree(graphs);
 	graphs = (Graph*)dtAlloc(sizeof(Graph)*levels, DT_ALLOC_PERM);
 	memset(graphs, 0, sizeof(Graph)*levels);
 	numLevel = 0;
 
-	//reserve memory por pool nodes
-	m_nodePool = 0;
-	m_openList = 0;
-	if (!m_nodePool || m_nodePool->getMaxNodes() < maxNodes)
+	//reserve memory for pool nodes
+	if (m_nodePool)
 	{
-		if (m_nodePool)
-		{
-			m_nodePool->~dtNodePool();
-			dtFree(m_nodePool);
-			m_nodePool = 0;
-		}
-		m_nodePool = new (dtAlloc(sizeof(dtNodePool), DT_ALLOC_PERM)) dtNodePool(maxNodes, dtNextPow2(maxNodes/4));
+		m_nodePool->~dtNodePool();
+		dtFree(m_nodePool);
 	}
-	else
-	{
-		m_nodePool->clear();
-	}
+	m_nodePool = new (dtAlloc(sizeof(dtNodePool), DT_ALLOC_PERM)) dtNodePool(maxNodes, dtNextPow2(maxNodes/4));
 
 	//reserve memory for open list
-	if (!m_openList || m_openList->getCapacity() < maxNodes)
+	if (m_openList)
 	{
-		if (m_openList)
-		{
-			m_openList->~dtNodeQueue();
-			dtFree(m_openList);
-			m_openList = 0;
-		}
-		m_openList = new (dtAlloc(sizeof(dtNodeQueue), DT_ALLOC_PERM)) dtNodeQueue(maxNodes);
+		m_openList->~dtNodeQueue();
+		dtFree(m_openList);
 	}
-	else
-	{
-		m_openList->clear();
-	}
+	m_openList = new (dtAlloc(sizeof(dtNodeQueue), DT_ALLOC_PERM)) dtNodeQueue(maxNodes);
 
 	//get the base poly ref
 	refBase = m_navMesh->getPolyRefBase(tile);
@@ -146,8 +132,8 @@ void Navigation::createHierarchicalGraph(int p_levels,int p_level,int p_mergedPo
 					parentGraph.AddEdge(ref - refBase,neighbourRef - refBase, mid, idPos,ref - refBase);
 					parentGraph.AddEdge(neighbourRef- refBase,ref - refBase, mid, idPos,neighbourRef- refBase);
 
-					positions.insert(std::make_pair<std::pair<dtPolyRef,dtPolyRef>,float*>(p1,mid));
-					positions.insert(std::make_pair<std::pair<dtPolyRef,dtPolyRef>,float*>(p2,mid));
+                                        positions.insert(std::make_pair(p1, mid));
+                                        positions.insert(std::make_pair(p2, mid));
 
 					idPos++;
 				}
@@ -425,7 +411,7 @@ dtStatus Navigation::findHierarchicalPath(dtPolyRef startRef, dtPolyRef endRef, 
 		const Graph::Node* node = &currentGraph.nodes[bestNode->idPos];
 
 		// Get parent
-		dtPolyRef parentRef = -1;
+		dtPolyRef parentRef = 0;
 
 		if (bestNode->pidx)
 			parentRef = m_nodePool->getNodeAtIdx(bestNode->pidx)->id;
@@ -681,7 +667,7 @@ void Navigation::mergeNodes()
 		if(node->numEdges <= 0)
 			continue;
 
-		clusterNode.insert(std::make_pair<dtPolyRef, dtPolyRef>(idC, j));
+                clusterNode.insert(std::make_pair(idC, j));
 	}
 
 	//add parent for each child
@@ -692,7 +678,7 @@ void Navigation::mergeNodes()
 		auto ret = clusterNode.equal_range(it->first);
 		for (auto it1=ret.first; it1!=ret.second; ++it1)
 		{
-			nodeCluster.insert(std::make_pair<dtPolyRef, dtPolyRef>(it1->second, nodeId));
+                        nodeCluster.insert(std::make_pair(it1->second, nodeId));
 			parentGraph.AddParent(it1->second, nodeId);
 		}
 		nodeId++;
@@ -704,7 +690,7 @@ void Navigation::mergeNodes()
 
 	for(auto it = nodeCluster.begin(); it != nodeCluster.end(); ++it ) 
 	{
-		clusterNode.insert(std::make_pair<dtPolyRef, dtPolyRef>(it->second, it->first));	
+                clusterNode.insert(std::make_pair(it->second, it->first));
 	}
 
 	dtFree(xadj);
@@ -841,15 +827,15 @@ void Navigation::buildEdges()
 			
 				float neighbourPos[3];
 				std::pair<int,float*> p3 = it2->second;
-				int neiughbourIdPos = p3.first;
+				int neighbourIdPos = p3.first;
 				dtVcopy(neighbourPos, p3.second);
 
 				dtPolyRef m_polys[MAX_POLYS];
 				int m_npolys;
 
-				float cost = findPathLocal(idNode, idNeighbour, idPos, neiughbourIdPos, nodePos,neighbourPos,m_polys,m_npolys,MAX_POLYS,subgraphNodes);
+				float cost = findPathLocal(idNode, idNeighbour, idPos, neighbourIdPos, nodePos,neighbourPos,m_polys,m_npolys,MAX_POLYS,subgraphNodes);
 				
-				currentGraph.AddIntraEdge(clusterId, idPos, neiughbourIdPos, cost, m_polys, m_npolys);
+				currentGraph.AddIntraEdge(clusterId, idPos, neighbourIdPos, cost, m_polys, m_npolys);
 			}
 		}
 
@@ -1011,7 +997,7 @@ float Navigation::findPath(dtPolyRef startRef, dtPolyRef endRef,const float* sta
 	return cost;
 }
 
-float Navigation::findPathLocal(dtPolyRef startRef, dtPolyRef endRef,int  startIdPos, int endIdPos, const float* startPos, const float* endPos, dtPolyRef* path, int &pathCount, const int maxPath, std::vector<dtPolyRef> subGraphNodes)
+float Navigation::findPathLocal(dtPolyRef startRef, dtPolyRef endRef,int  startIdPos, int endIdPos, const float* startPos, const float* endPos, dtPolyRef* path, int &pathCount, const int maxPath, const std::vector<dtPolyRef>& subGraphNodes)
 {
     dtAssert(m_nodePool);
 	dtAssert(m_openList);
@@ -1207,16 +1193,16 @@ void Navigation::setGraph()
 
 Graph::Node *Navigation::getNode(dtPolyRef ref, int l)
 {
-	if(l == level)
-		return &graphs[l].nodes[ref];
+        if (l == level)
+                return &graphs[l].nodes[ref];
 
-	Graph::Node *node = &graphs[l].nodes[ref];
-	
-	if(node->edges <= 0)
-		return NULL;
+        Graph::Node* node = &graphs[l].nodes[ref];
 
-	l++;
-	getNode(node->idParent,l);
+        if (node->numEdges <= 0)
+                return NULL;
+
+        l++;
+        return getNode(node->idParent, l);
 }
 
 void Navigation::checkPartition(int* part, const int numNodes, const int numParts)
