@@ -1,10 +1,11 @@
-#ifndef	__GRAPH_H__
-#define	__GRAPH_H__
+#ifndef	GRAPH_H
+#define	GRAPH_H
 
 #include "DetourCommon.h"
 #include "DetourAlloc.h"
 #include <vector>
 #include <map>
+#include <cstring>
 
 
 const int maxInternalPath = 256;
@@ -49,7 +50,6 @@ public:
 		void InitEdge(int maxEdgesPerNode)
 		{
 			numEdges = 0;
-			edges = 0;
 			edges = (Edge*)dtAlloc(sizeof(Edge)*maxEdgesPerNode, DT_ALLOC_PERM);
 			memset(edges, 0, sizeof(Edge)*maxEdgesPerNode);
 		}
@@ -67,7 +67,6 @@ public:
 			if(maxIntraEdgesPerNode > 0)
 			{
 				numIntraEdges = 0;
-				intraEdges = 0;
 				intraEdges = (IntraEdge*)dtAlloc(sizeof(IntraEdge)*maxIntraEdgesPerNode, DT_ALLOC_PERM);
 				memset(intraEdges, 0, sizeof(IntraEdge)*maxIntraEdgesPerNode);
 			}
@@ -125,7 +124,6 @@ public:
 	void Init(int numMaxNodes)
 	{
 		numNodes = 0;
-		nodes = 0;
 		nodes = (Node*)dtAlloc(sizeof(Node)*numMaxNodes, DT_ALLOC_PERM);
 		memset(nodes, 0, sizeof(Node)*numMaxNodes);
 	}
@@ -143,4 +141,4 @@ public:
 	}
 };
 
-#endif	// __GRAPH_H__
+#endif	// GRAPH_H
